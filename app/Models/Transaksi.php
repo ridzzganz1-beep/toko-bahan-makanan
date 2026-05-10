@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * Model Transaksi menyimpan pelanggan, item pembelian, dan total belanja.
- * Method hitungTotal dan tampilkanStruk dibuat di model sesuai ketentuan.
- */
 class Transaksi extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'pembeli',
         'items',
@@ -18,37 +17,55 @@ class Transaksi extends Model
 
     protected $casts = [
         'items' => 'array',
-        'total' => 'double',
     ];
 
-    public function hitungTotal(): float
-    {
-        if (empty($this->items)) {
-            return 0;
-        }
+    /*
+    |--------------------------------------------------------------------------
+    | Hitung Total Belanja
+    |--------------------------------------------------------------------------
+    */
 
-        return collect($this->items)
-            ->sum(function (array $item) {
-                return ($item['harga'] ?? 0) * ($item['jumlah'] ?? 0);
-            });
-    }
-
-    public function tampilkanStruk(): string
+    public function hitungTotal()
     {
-        $lines = [];
-        $lines[] = '===== STRUK TOKO BAHAN MAKANAN =====';
-        $lines[] = 'Nama Pembeli: ' . $this->pembeli;
-        $lines[] = '-----------------------------------';
+        $total = 0;
 
         foreach ($this->items as $item) {
-            $subtotal = ($item['harga'] ?? 0) * ($item['jumlah'] ?? 0);
-            $lines[] = sprintf('%s x %d = Rp %s', $item['nama'], $item['jumlah'], number_format($subtotal, 0, ',', '.'));
+
+            $harga = $item['harga'];
+            $jumlah = $item['jumlah'];
+
+            $total += $harga * $jumlah;
         }
 
-        $lines[] = '-----------------------------------';
-        $lines[] = 'Total Belanja: Rp ' . number_format($this->hitungTotal(), 0, ',', '.');
-        $lines[] = '===================================';
+        return $total;
+    }
 
-        return implode(PHP_EOL, $lines);
+    /*
+    |--------------------------------------------------------------------------
+    | Tampilkan Struk
+    |--------------------------------------------------------------------------
+    */
+
+    public function tampilkanStruk()
+    {
+        $struk = "=== STRUK BELANJA ===\n";
+        $struk .= "Pembeli: {$this->pembeli}\n\n";
+
+        foreach ($this->items as $item) {
+
+            $subtotal = $item['harga'] * $item['jumlah'];
+
+            $struk .= $item['nama']
+                . " x "
+                . $item['jumlah']
+                . " = Rp "
+                . number_format($subtotal, 0, ',', '.')
+                . "\n";
+        }
+
+        $struk .= "\nTOTAL: Rp "
+            . number_format($this->hitungTotal(), 0, ',', '.');
+
+        return $struk;
     }
 }

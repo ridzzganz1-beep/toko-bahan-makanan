@@ -9,10 +9,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('transaksis', function (Blueprint $table) {
+
             $table->id();
+
             $table->string('pembeli');
+
             $table->json('items');
-            $table->decimal('total', 14, 2)->default(0);
+
+            $table->integer('total');
+
             $table->timestamps();
         });
     }
