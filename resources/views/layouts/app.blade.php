@@ -19,7 +19,7 @@
         .hover-scale:hover { transform: scale(1.03); }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans" x-data="{ sidebarOpen: true }">
+<body class="bg-slate-950 text-slate-100 font-sans" x-data="{ sidebarOpen: window.innerWidth >= 1024 }" @resize.window="sidebarOpen = window.innerWidth >= 1024">
     @auth
         @if(auth()->user()->role === 'admin')
             <aside class="fixed left-0 top-0 h-screen w-72 bg-slate-950 border-r border-white/10 overflow-y-auto transition-transform duration-300 lg:block" :class="{ '-translate-x-full': !sidebarOpen }" style="z-index: 900;">
@@ -68,56 +68,121 @@
                     </form>
                 </div>
             </aside>
+        @elseif(auth()->user()->role === 'user')
+            <aside class="fixed left-0 top-0 h-screen w-72 bg-slate-950 border-r border-white/10 overflow-y-auto transition-transform duration-300 lg:block" :class="{ '-translate-x-full': !sidebarOpen }" style="z-index: 900;">
+                <div class="p-6">
+                    <div class="flex items-center gap-3 mb-8">
+                        <div class="w-14 h-14 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-xl">
+                            <i class="fas fa-shopping-cart text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="font-bold text-lg text-white">Toko</h1>
+                            <p class="text-xs text-slate-400">Bahan Makanan</p>
+                        </div>
+                    </div>
+
+                    <nav class="space-y-2">
+                        <a href="{{ route('dashboard') }}" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-3xl transition-all {{ request()->routeIs('dashboard') ? 'text-emerald-200' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            <i class="fas fa-home w-5"></i>
+                            <span class="font-medium">Beranda</span>
+                        </a>
+                        <a href="{{ route('products.index') }}" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-3xl transition-all {{ request()->routeIs('products.*') ? 'text-emerald-200' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            <i class="fas fa-boxes w-5"></i>
+                            <span class="font-medium">Produk</span>
+                        </a>
+                        <a href="{{ route('cart.index') }}" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-3xl transition-all {{ request()->routeIs('cart.*') ? 'text-emerald-200' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            <i class="fas fa-shopping-cart w-5"></i>
+                            <span class="font-medium">Keranjang</span>
+                        </a>
+                        <a href="{{ route('orders.index') }}" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-3xl transition-all {{ request()->routeIs('orders.*') ? 'text-emerald-200' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            <i class="fas fa-receipt w-5"></i>
+                            <span class="font-medium">Riwayat Pesanan</span>
+                        </a>
+                        <a href="{{ route('profile.show') }}" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-3xl transition-all {{ request()->routeIs('profile.*') ? 'text-emerald-200' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            <i class="fas fa-user w-5"></i>
+                            <span class="font-medium">Profil</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-white/10">
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 rounded-3xl text-slate-300 hover:bg-slate-800 transition-all">
+                            <i class="fas fa-sign-out-alt w-5"></i>
+                            <span class="font-medium">Logout</span>
+                        </button>
+                    </form>
+                </div>
+            </aside>
         @endif
     @endauth
 
+    <!-- Mobile Overlay -->
+    <div @click="sidebarOpen = false" :class="{ 'block': sidebarOpen, 'hidden': !sidebarOpen }" class="fixed inset-0 bg-black/50 z-40 lg:hidden" style="z-index: 800;"></div>
+
     <div class="lg:ml-72 transition-all duration-300" :class="{ 'ml-0': !sidebarOpen }">
-        <nav class="sticky top-0 z-40 glass border-b border-white/10 shadow-lg">
-            <div class="px-6 py-4 flex items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden text-slate-300 hover:text-white transition-colors">
-                        <i class="fas fa-bars w-6 h-6"></i>
-                    </button>
-                    <a href="{{ auth()->check() && auth()->user()->role === 'admin' ? route('admin.dashboard') : route('dashboard') }}" class="font-semibold text-white text-lg">Toko Bahan Makanan</a>
-                </div>
+        <!-- HEADER BARU -->
+        <header style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#1a1f36; border-bottom:1px solid #2d3561;">
 
-                <div class="flex-1 hidden lg:flex items-center justify-center">
-                    <div class="w-full max-w-2xl bg-slate-900/70 border border-white/10 rounded-full px-4 py-2 flex items-center gap-3">
-                        <i class="fas fa-search text-slate-400"></i>
-                        <input type="text" placeholder="Cari produk..." class="w-full bg-transparent text-slate-200 placeholder-slate-500 outline-none" />
-                    </div>
-                </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <!-- TOMBOL HAMBURGER -->
+            @auth
+            <button onclick="document.getElementById('sideMenu').classList.toggle('hidden')"
+            style="color:white; font-size:22px; background:none; border:none; cursor:pointer;">&#9776;</button>
+            @endauth
 
-                <div class="flex items-center gap-3">
-                    @auth
-                        @if(auth()->user()->role === 'user')
-                        <div class="hidden md:flex items-center gap-2 rounded-full bg-slate-900/70 px-3 py-2 border border-white/10">
-                            <a href="{{ route('dashboard') }}" class="text-slate-300 hover:text-white">Home</a>
-                            <span class="text-slate-500">•</span>
-                            <a href="{{ route('products.index') }}" class="text-slate-300 hover:text-white">Produk</a>
-                            <span class="text-slate-500">•</span>
-                            <a href="{{ route('cart.index') }}" class="text-slate-300 hover:text-white">Keranjang</a>
-                            <span class="text-slate-500">•</span>
-                            <a href="{{ route('orders.index') }}" class="text-slate-300 hover:text-white">Riwayat</a>
-                        </div>
-                        @endif
-                        <div class="flex items-center gap-3">
-                            <a href="{{ route('profile.show') }}" class="hidden md:flex items-center gap-2 rounded-full bg-slate-900/70 px-3 py-2 border border-white/10 text-slate-300 hover:text-white">
-                                <i class="fas fa-user-circle"></i>
-                                Profil
-                            </a>
-                            <form action="{{ route('logout') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="inline-flex items-center gap-2 rounded-full bg-indigo-500/90 px-4 py-2 text-white hover:bg-indigo-400 transition-all">
-                                    <i class="fas fa-sign-out-alt"></i>
-                                    Logout
-                                </button>
-                            </form>
-                        </div>
-                    @endauth
-                </div>
-            </div>
-        </nav>
+            <!-- JUDUL -->
+            <span style="color:white; font-weight:bold; font-size:16px;">
+              Toko Bahan Makanan
+            </span>
+          </div>
+
+          <!-- TOMBOL LOGOUT -->
+          @auth
+          <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" style="background:#6c63ff; color:white; border:none; padding:6px 16px; border-radius:20px; cursor:pointer;">Logout</button>
+          </form>
+          @endauth
+        </header>
+
+        <!-- SIDEBAR MENU -->
+        <div id="sideMenu" class="hidden" style="position:fixed; top:0; left:0; width:70%; height:100vh; background:#1a1f36; z-index:999; padding:20px; box-shadow:4px 0 10px rgba(0,0,0,0.5);">
+
+          <button onclick="document.getElementById('sideMenu').classList.add('hidden')"
+          style="color:white; background:none; border:none; font-size:24px; float:right;">✕</button>
+
+          <br><br>
+
+          @auth
+          @if(auth()->user()->role === 'admin')
+            <a href="{{ route('admin.dashboard') }}" style="display:block; color:white; padding:12px 0; border-bottom:1px solid #2d3561;">
+            🏠 Dashboard</a>
+
+            <a href="{{ route('admin.barangs.index') }}" style="display:block; color:white; padding:12px 0; border-bottom:1px solid #2d3561;">
+            📦 Kelola Barang</a>
+
+            <a href="{{ route('admin.users.index') }}" style="display:block; color:white; padding:12px 0; border-bottom:1px solid #2d3561;">
+            👥 Kelola User</a>
+
+            <a href="{{ route('admin.orders.index') }}" style="display:block; color:white; padding:12px 0; border-bottom:1px solid #2d3561;">
+            🧾 Pesanan</a>
+          @else
+            <a href="{{ route('dashboard') }}" style="display:block; color:white; padding:12px 0; border-bottom:1px solid #2d3561;">
+            🏠 Beranda</a>
+
+            <a href="{{ route('products.index') }}" style="display:block; color:white; padding:12px 0; border-bottom:1px solid #2d3561;">
+            🛒 Katalog</a>
+
+            <a href="{{ route('orders.index') }}" style="display:block; color:white; padding:12px 0; border-bottom:1px solid #2d3561;">
+            📋 Pesanan Saya</a>
+
+            <a href="{{ route('profile.show') }}" style="display:block; color:white; padding:12px 0; border-bottom:1px solid #2d3561;">
+            👤 Profil</a>
+          @endif
+          @endauth
+        </div>
 
         <main class="p-6 min-h-screen">
             @if (session('success'))

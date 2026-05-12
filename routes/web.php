@@ -33,7 +33,19 @@ Route::get('/', function () {
             : redirect()->route('dashboard');
     }
 
-    return view('welcome');
+    $search = request()->query('search');
+    $category = request()->query('category');
+    $categories = ['Bumbu', 'Sayur', 'Daging', 'Serealia', 'Minuman'];
+
+    $featured = Barang::when($search, fn ($query) => $query->where('nama', 'like', "%{$search}%"))
+        ->when($category, fn ($query) => $query->where('nama', 'like', "%{$category}%"))
+        ->latest()
+        ->take(4)
+        ->get();
+
+    $popular = Barang::inRandomOrder()->take(4)->get();
+
+    return view('home', compact('featured', 'popular', 'categories', 'search', 'category'));
 
 })->name('welcome');
 
@@ -151,6 +163,9 @@ Route::middleware(['auth', 'user'])->group(function () {
 
     Route::get('/orders/{order}', [OrderController::class, 'show'])
         ->name('orders.show');
+
+    Route::get('/orders/{order}/receipt', [OrderController::class, 'receipt'])
+        ->name('orders.receipt');
 
     /*
     |--------------------------------------------------------------------------

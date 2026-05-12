@@ -33,8 +33,13 @@ class BarangController extends Controller
 
         // Handle image upload
         if ($request->hasFile('gambar')) {
-            $imageName = time() . '.' . $request->gambar->extension();
-            $request->gambar->move(public_path('images/barangs'), $imageName);
+            $uploadPath = public_path('images/barangs');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+
+            $imageName = time() . '_' . uniqid() . '.' . $request->gambar->extension();
+            $request->gambar->move($uploadPath, $imageName);
             $data['gambar'] = $imageName;
         }
 
@@ -60,13 +65,18 @@ class BarangController extends Controller
 
         // Handle image upload
         if ($request->hasFile('gambar')) {
-            // Delete old image if exists
-            if ($barang->gambar && file_exists(public_path('images/barangs/' . $barang->gambar))) {
-                unlink(public_path('images/barangs/' . $barang->gambar));
+            $uploadPath = public_path('images/barangs');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
             }
 
-            $imageName = time() . '.' . $request->gambar->extension();
-            $request->gambar->move(public_path('images/barangs'), $imageName);
+            // Delete old image if exists
+            if ($barang->gambar && file_exists($uploadPath . '/' . $barang->gambar)) {
+                unlink($uploadPath . '/' . $barang->gambar);
+            }
+
+            $imageName = time() . '_' . uniqid() . '.' . $request->gambar->extension();
+            $request->gambar->move($uploadPath, $imageName);
             $data['gambar'] = $imageName;
         }
 
