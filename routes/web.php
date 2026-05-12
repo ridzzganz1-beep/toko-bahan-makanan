@@ -25,29 +25,8 @@ use App\Models\User;
 */
 
 Route::get('/', function () {
-
-    if (auth()->check()) {
-
-        return auth()->user()->role === 'admin'
-            ? redirect()->route('admin.dashboard')
-            : redirect()->route('dashboard');
-    }
-
-    $search = request()->query('search');
-    $category = request()->query('category');
-    $categories = ['Bumbu', 'Sayur', 'Daging', 'Serealia', 'Minuman'];
-
-    $featured = Barang::when($search, fn ($query) => $query->where('nama', 'like', "%{$search}%"))
-        ->when($category, fn ($query) => $query->where('nama', 'like', "%{$category}%"))
-        ->latest()
-        ->take(4)
-        ->get();
-
-    $popular = Barang::inRandomOrder()->take(4)->get();
-
-    return view('home', compact('featured', 'popular', 'categories', 'search', 'category'));
-
-})->name('welcome');
+    return redirect()->route('login');
+});
 
 /*
 |--------------------------------------------------------------------------

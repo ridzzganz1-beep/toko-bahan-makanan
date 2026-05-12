@@ -10,6 +10,11 @@ use Illuminate\Http\Request;
  */
 class BarangController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     public function index()
     {
         $barangs = Barang::orderBy('nama')->paginate(10);
